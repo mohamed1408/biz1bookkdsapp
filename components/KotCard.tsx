@@ -1,27 +1,62 @@
 import * as WebBrowser from 'expo-web-browser';
 import moment from 'moment';
-import React, { FC, useState } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import { StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import Checkbox from 'expo-checkbox';
 
 import Colors from '../constants/Colors';
 import { MonoText } from './StyledText';
 import { Text, View } from './Themed';
+import useInterval from '../utils/timer'
+import { Feather } from '@expo/vector-icons';
 
 interface Props {
     kot: any;
     changestatus: any;
-    kotStatusId: any
+    changeItemStatus: any;
+    update_helper: boolean;
 }
 
-export default function KotCard({ kot, changestatus, kotStatusId }: { kot: any, changestatus: any, kotStatusId: number }) {
+const colors = {
+    'green': '#389b3a',
+    'black': '#222222',
+    'yellow': '#eeaa00',
+    'red': '#f24e40'
+}
+
+export default function KotCard({ kot, changestatus, changeItemStatus, update_helper }: { kot: any, changestatus: any, changeItemStatus: any, update_helper: boolean }) {
 
     const [KOT, setKOT] = useState(kot);
     const [hide, setHide] = useState(false);
+    const [time_left, setTimeLeft] = useState("00:00");
+    const [headerColor, setHeaderColor] = useState(colors.red)
+
+    useEffect(() => {
+        // Update the document title using the browser API
+        let color = ""
+        if (KOT.KOTStatusId == 1) {
+            setHeaderColor(colors.red)
+        } else if (KOT.KOTStatusId == 2) {
+            setHeaderColor(colors.yellow)
+        } else if (KOT.KOTStatusId == 3) {
+            setHeaderColor(colors.green)
+        }
+    });
+
+    useInterval(() => {
+        const current_time = new Date().getTime()
+        const delivery_time = new Date(KOT.DeliveryDateTime).getTime()
+        if (delivery_time) {
+            setTimeLeft((delivery_time > current_time) ? new Date(delivery_time - current_time).toISOString().substr(11, 8) : "00:00")
+            // console.log(KOT.ordername)
+        }
+    }, 1000);
 
     const getOrderType = (orderTypeId: number) => {
         const orderTypes = ["Dine In", "Take Away", "Delivery", "Pick Up", "Counter", "Online"]
         return orderTypes[orderTypeId]
     }
+
     const changeStatus = (statusId: number, refid: string) => {
         // let _kot = KOT
         // _kot.KOTStatusId = statusId
@@ -31,53 +66,84 @@ export default function KotCard({ kot, changestatus, kotStatusId }: { kot: any, 
         // console.log(KOT.KOTStatusId)
     }
 
+    const getStatusBtn = () => {
+        if (KOT.KOTStatusId == 1) {
+            return (<TouchableOpacity
+                style={[styles.button, { backgroundColor: colors.yellow }]}
+                onPress={() => { changeStatus(2, KOT.refid) }}>
+                <Text style={{ color: 'white' }}>Start</Text>
+            </TouchableOpacity>)
+        } else if (KOT.KOTStatusId == 2) {
+            return (<TouchableOpacity
+                style={[styles.button, { backgroundColor: colors.green }]}
+                onPress={() => { changeStatus(3, KOT.refid) }}>
+                <Text style={{ color: 'white' }}>Complete</Text>
+            </TouchableOpacity>)
+        }
+    }
+
     const kotItem = (item: any, index: number) => {
         return (
-            <View style={{ flexDirection: 'row' }} key={"child-" + index}>
-                <View style={{ flex: 1 }}>
+            <TouchableOpacity style={{ flexDirection: 'row', padding: 10 }} key={"child-" + index}
+                onPress={() => changeItemStatus(item.kotrefid, item.ProductKey, item.completed)}
+                disabled={KOT.KOTStatusId != 2}>
+                {/* <View style={{ flex: 1 }}>
                     <Text style={{ backgroundColor: 'black', width: 5, height: 5, borderRadius: 50, margin: 5 }}></Text>
-                </View>
-                <Text style={{ flex: 8 }}>{item.showname}</Text>
-                <Text style={{ flex: 1 }}>x</Text>
-                <Text style={{ flex: 1, alignSelf: 'flex-end' }}>{item.Quantity.toFixed(1)}</Text>
-            </View>
+                </View> */}
+                {item.completed
+                    ? <Feather style={{ flex: 1, paddingVertical: 5, alignSelf: 'center' }} name="check-circle" size={15} color="green" />
+                    : <Feather style={{ flex: 1, paddingVertical: 5, alignSelf: 'center' }} name="circle" size={15} color={colors.yellow} />}
+                {item.Quantity > 0
+                    ? <Text style={{ flex: 1, alignSelf: 'center' }}>{item.Quantity + '  x'}</Text>
+                    : <Text style={[{ flex: 1, alignSelf: 'center' }, styles.textStrikeThrough]}>{Math.abs(item.Quantity) + '  x'}</Text>
+                }
+                {item.Quantity > 0
+                    ? <Text style={{ flex: 9, alignSelf: 'center' }}>{item.showname}</Text>
+                    : <Text style={[{ flex: 9, alignSelf: 'center' }, styles.textStrikeThrough]}>{item.showname}</Text>
+                }
+            </TouchableOpacity>
         )
     }
 
     return (
         <View style={[styles.cardContainer]}>
             <View style={[styles.card]}>
-                <View style={[styles.cardHeader]}>
-                    <Text style={[styles.carHeaderLeft]}>#{KOT.KOTNo} - {kotStatusId}</Text>
+                <View style={[styles.cardHeader, { backgroundColor: headerColor }]}>
+                    {/* <Text style={[styles.carHeaderLeft, { color: 'white' }]}>#{KOT.KOTNo} - {kotStatusId}</Text> */}
+                    <View style={[styles.carHeaderLeft]}>
+                        <Text style={{ color: 'white', marginBottom: 10 }}>{KOT.KOTStatusId < 3 ? time_left : 'Completed'}</Text>
+                        <Text style={{ color: 'white', fontWeight: 'bold' }}>{KOT.ordername.toUpperCase()}</Text>
+                    </View>
                     <View style={[styles.carHeaderRight]}>
-                        <Text>{KOT.invoiceno}</Text>
-                        <Text>{getOrderType(KOT.ordertypeid)}</Text>
+                        <Text style={{ color: 'white' }}>#{KOT.KOTNo}</Text>
+                        <Text style={{ color: 'white' }}>{KOT.invoiceno}</Text>
                     </View>
                 </View>
-                <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
+                {/* <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" /> */}
                 <View style={[styles.cardBody]}>
-                    {/* <FlatList
+                    <FlatList
                         key={KOT.refid + "#"}
                         data={KOT.Items}
                         keyExtractor={(item, index) => item.ProductKey}
                         renderItem={({ item, index }) => kotItem(item, index)}
-                    /> */}
+                    />
                 </View>
                 <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
                 <View style={[styles.cardFooter]}>
                     <View style={[styles.carFooterLeft]}>
                         <Text><Text style={{ fontWeight: 'bold' }}>Delivery Time: </Text>
-                            {KOT.CreatedDate}</Text>
-                        <Text><Text style={{ fontWeight: 'bold' }}>Remaining Time: </Text>
-                            2 Hrs, 30 Mins</Text>
+                            {KOT.DeliveryDateTime}</Text>
+                        {/* <Text><Text style={{ fontWeight: 'bold' }}>Remaining Time: </Text>
+                            2 Hrs, 30 Mins</Text> */}
                     </View>
                     <View style={[styles.carFooterRight]}>
-                        <TouchableOpacity
+                        {getStatusBtn()}
+                        {/* <TouchableOpacity
                             // disabled={hide}
                             style={styles.button}
                             onPress={() => { changeStatus(1, KOT.refid) }}>
                             <Text>Start</Text>
-                        </TouchableOpacity>
+                        </TouchableOpacity> */}
                     </View>
                 </View>
             </View>
@@ -87,7 +153,7 @@ export default function KotCard({ kot, changestatus, kotStatusId }: { kot: any, 
 
 const styles = StyleSheet.create({
     separator: {
-        marginVertical: 30,
+        marginVertical: 10,
         height: 1,
         width: '100%',
     },
@@ -96,28 +162,38 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     card: {
-        padding: 20,
+        // padding: 20,
         borderWidth: 0,
-        // borderRadius: 5,
+        borderRadius: 10,
         elevation: 5,
     },
     cardHeader: {
-        flexDirection: 'row'
+        flexDirection: 'row',
+        // borderWidth: 1,
+        paddingVertical: 10,
+        paddingHorizontal: 15,
+        // backgroundColor: colors.red,
+        borderTopRightRadius: 10,
+        borderTopLeftRadius: 10
     },
     carHeaderLeft: {
         flex: 1,
-        fontSize: 25,
-        fontWeight: 'bold',
+        alignItems: 'flex-start',
+        backgroundColor: '#ffffff00',
     },
     carHeaderRight: {
         flex: 1,
         alignItems: 'flex-end',
+        backgroundColor: '#ffffff00',
     },
     cardBody: {
 
     },
     cardFooter: {
-        flexDirection: 'row'
+        flexDirection: 'row',
+        padding: 20,
+        borderBottomRightRadius: 10,
+        borderBottomLeftRadius: 10
     },
     carFooterLeft: {
         flex: 3,
@@ -129,9 +205,15 @@ const styles = StyleSheet.create({
     },
     button: {
         alignItems: "center",
-        backgroundColor: "#DDDDDD",
+        // backgroundColor: "#DDDDDD",
         padding: 10,
+        borderRadius: 3,
+        elevation: 10
     },
+    textStrikeThrough: {
+        textDecorationLine: 'line-through',
+        textDecorationStyle: 'solid',
+    }
 });
 
 // const areEqual = (prevProps: any, nextProps: any) => {

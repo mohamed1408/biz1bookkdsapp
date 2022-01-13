@@ -1,5 +1,7 @@
+import { MaterialIcons } from '@expo/vector-icons';
 import React, { useRef, useState } from 'react';
-import { FlatList, ScrollView, StyleSheet } from 'react-native';
+import { FlatList, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 
 import EditScreenInfo from '../components/EditScreenInfo';
 // import { KotCard } from '../components/KotCard';
@@ -9,15 +11,17 @@ import { RootTabScreenProps } from '../types';
 
 const DATA = [
   {
-    "KOTStatusId": 0,
+    "KOTStatusId": 2,
     "Instruction": "",
     "KOTNo": 17,
+    "ordername": 'Table: 1',
     "OrderId": 1695430,
     "Items": [
       {
         "DiscType": 1,
         "isorderitem": true,
         "showname": "BLACK FOREST/1 Kg+1/2 kg",
+        "completed": false,
         "Id": 0,
         "CategoryId": 559,
         "ComplementryQty": 0,
@@ -215,6 +219,7 @@ const DATA = [
         "DiscType": 1,
         "isorderitem": true,
         "showname": "BLACK FOREST/1 Kg+1/2 kg",
+        "completed": false,
         "Id": 0,
         "CategoryId": 559,
         "ComplementryQty": 0,
@@ -408,23 +413,27 @@ const DATA = [
 
     ],
     "CreatedDate": "2021-12-09 07:43 PM",
+    "DeliveryDateTime": "2022-01-13T17:00",
     "ModifiedDate": "2021-12-09 07:43 PM",
     "invoiceno": "8120211209/17",
+    "time_left": "00:00",
     "ordertypeid": 4,
     "isprinted": true,
     "orderrefid": "8120211209/17",
     "refid": "8120211209/17:17"
   },
   {
-    "KOTStatusId": 0,
+    "KOTStatusId": 1,
     "Instruction": "",
     "KOTNo": 18,
+    "ordername": 'TakeAway',
     "OrderId": 1695430,
     "Items": [
       {
         "DiscType": 1,
         "isorderitem": true,
         "showname": "BLACK FOREST/1 Kg+1/2 kg",
+        "completed": false,
         "Id": 0,
         "CategoryId": 559,
         "ComplementryQty": 0,
@@ -617,6 +626,7 @@ const DATA = [
         "DiscType": 1,
         "isorderitem": true,
         "showname": "BLACK FOREST/1 Kg+1/2 kg+Rs:100",
+        "completed": false,
         "Id": 0,
         "CategoryId": 559,
         "ComplementryQty": 0,
@@ -815,6 +825,7 @@ const DATA = [
         "DiscType": 1,
         "isorderitem": true,
         "showname": "BLACK FOREST/1 Kg+1/2 kg+Rs:100",
+        "completed": false,
         "Id": 0,
         "CategoryId": 559,
         "ComplementryQty": 0,
@@ -1010,6 +1021,7 @@ const DATA = [
         "DiscType": 1,
         "isorderitem": true,
         "showname": "BLACK FOREST/1 Kg+1/2 kg",
+        "completed": false,
         "Id": 0,
         "CategoryId": 559,
         "ComplementryQty": 0,
@@ -1200,22 +1212,26 @@ const DATA = [
       }
     ],
     "CreatedDate": "2021-12-09 07:43 PM",
+    "DeliveryDateTime": "2022-01-13T17:00",
     "ModifiedDate": "2021-12-09 07:43 PM",
     "invoiceno": "8120211209/17",
+    "time_left": "00:00",
     "ordertypeid": 4,
     "isprinted": true,
     "orderrefid": "8120211209/17",
     "refid": "8120211209/17:18"
   },
   {
-    "KOTStatusId": 0,
+    "KOTStatusId": 3,
     "Instruction": "",
     "KOTNo": 65,
+    "ordername": 'Dine In',
     "OrderId": 1695430,
     "Items": [
       {
         "isorderitem": true,
         "showname": "SNOW SPRAY",
+        "completed": false,
         "Id": 0,
         "CategoryId": 48,
         "ComplementryQty": 0,
@@ -1263,6 +1279,7 @@ const DATA = [
       {
         "isorderitem": true,
         "showname": "MUSIC CANDLE",
+        "completed": false,
         "Id": 0,
         "CategoryId": 48,
         "ComplementryQty": 0,
@@ -1310,6 +1327,7 @@ const DATA = [
       {
         "isorderitem": true,
         "showname": "POPPER RS 60",
+        "completed": false,
         "Id": 0,
         "CategoryId": 48,
         "ComplementryQty": 0,
@@ -1362,6 +1380,7 @@ const DATA = [
       {
         "isorderitem": true,
         "showname": "SNOW SPRAY",
+        "completed": false,
         "Id": 0,
         "CategoryId": 48,
         "ComplementryQty": 0,
@@ -1409,6 +1428,7 @@ const DATA = [
       {
         "isorderitem": true,
         "showname": "MUSIC CANDLE",
+        "completed": false,
         "Id": 0,
         "CategoryId": 48,
         "ComplementryQty": 0,
@@ -1456,6 +1476,7 @@ const DATA = [
       {
         "isorderitem": true,
         "showname": "POPPER RS 60",
+        "completed": false,
         "Id": 0,
         "CategoryId": 48,
         "ComplementryQty": 0,
@@ -1505,8 +1526,10 @@ const DATA = [
 
     ],
     "CreatedDate": "2021-12-09 07:43 PM",
+    "DeliveryDateTime": "2022-01-13T17:00",
     "ModifiedDate": "2021-12-09 07:43 PM",
     "invoiceno": "8120211209/17",
+    "time_left": "00:00",
     "ordertypeid": 4,
     "isprinted": true,
     "orderrefid": "8120211209/17",
@@ -1514,15 +1537,17 @@ const DATA = [
   }
 ]
 const kot = {
-  "KOTStatusId": 0,
+  "KOTStatusId": 1,
   "Instruction": "",
   "KOTNo": 17,
+  "ordername": 'PickUp',
   "OrderId": 1695430,
   "Items": [
     {
       "DiscType": 1,
       "isorderitem": true,
       "showname": "BLACK FOREST/1 Kg+1/2 kg",
+      "completed": false,
       "Id": 0,
       "CategoryId": 559,
       "ComplementryQty": 0,
@@ -1720,6 +1745,7 @@ const kot = {
       "DiscType": 1,
       "isorderitem": true,
       "showname": "BLACK FOREST/1 Kg+1/2 kg",
+      "completed": false,
       "Id": 0,
       "CategoryId": 559,
       "ComplementryQty": 0,
@@ -1913,23 +1939,62 @@ const kot = {
 
   ],
   "CreatedDate": "2021-12-09 07:43 PM",
+  "DeliveryDateTime": "2022-01-13T17:00",
   "ModifiedDate": "2021-12-09 07:43 PM",
   "invoiceno": "2220211209/17",
+  "time_left": "00:00",
   "ordertypeid": 4,
   "isprinted": true,
   "orderrefid": "2220211209/17",
   "refid": "2220211209/17:17"
 }
+
+const colors = {
+  'green': '#389b3a',
+  'black': '#222222',
+  'yellow': '#eeaa00',
+  'red': '#f24e40'
+}
+
 export default function KitchenDisplayScreen({ navigation }: RootTabScreenProps<'KitchenDisplay'>) {
 
-  const [KOTS, setKOTS] = useState(DATA);
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Pressable
+          // onPress={() => setShowFloors(true)}
+          style={({ pressed }) => ({
+            opacity: pressed ? 0.5 : 1,
+          })}>
+          <MaterialIcons
+            name="menu"
+            size={25}
+            color={'#2f95dc'}
+            style={{ marginRight: 15 }}
+          />
+        </Pressable>
+      )
+    })
+  })
 
+  const [KOTS, setKOTS] = useState(DATA);
+  const [update_helper, indicateUpdate] = useState(true);
   const changeStatus = (statusId: number, refid: string) => {
     // KOTS.push(kot)
     let _kots = KOTS
     _kots.filter(x => x.refid == refid)[0].KOTStatusId = statusId
+    // _kot = { ..._kot }
+    // _kots = [..._kots]
     setKOTS(_kots)
+    indicateUpdate(!update_helper)
     console.log(refid + " statusid: ", KOTS.filter(x => x.refid == refid)[0].KOTStatusId)
+  }
+
+  const changeItemStatus = (kotrefid: string, product_key: string, completed: boolean) => {
+    let _kots = KOTS
+    _kots.filter(x => x.refid == kotrefid)[0].Items.filter((x: any) => x.ProductKey == product_key)[0].completed = !completed
+    setKOTS(_kots)
+    indicateUpdate(!update_helper)
   }
 
   const create_UUID = () => {
@@ -1942,20 +2007,48 @@ export default function KitchenDisplayScreen({ navigation }: RootTabScreenProps<
     return uuid;
   }
 
+  const listHeader = () => {
+    return (
+      <Picker
+      // selectedValue={selectedLanguage}
+      // onValueChange={(itemValue, itemIndex) =>
+      //   setSelectedLanguage(itemValue)}
+      >
+        <Picker.Item label="Java" value="java" />
+        <Picker.Item label="JavaScript" value="js" />
+      </Picker>
+    )
+  }
+
   return (
     <View style={styles.container} >
-      <ScrollView style={{ width: '100%', backgroundColor: '#212121' }}>
-        {KOTS.map((kot, index) => (
-          <KotCard key={create_UUID()} kot={kot} changestatus={changeStatus} kotStatusId={kot.KOTStatusId} />
-        ))}
-        {/* <FlatList
-        style={{ width: '100%' }}
+      <View style={{ position: 'absolute', zIndex: 1000, top: 0, width: '100%' }}>
+        <Picker
+          // selectedValue={selectedLanguage}
+          onValueChange={(itemValue, itemIndex) =>
+            console.log(itemValue)}
+        >
+          <Picker.Item label="All" value="0" />
+          <Picker.Item label="Accepted" value="1" />
+          <Picker.Item label="Preparing" value="2" />
+          <Picker.Item label="Completed" value="3" />
+        </Picker>
+      </View>
+      {/* <ScrollView style={{ width: '100%', backgroundColor: '#212121' }}> */}
+      {/* {KOTS.map((kot, index) => (
+        <KotCard key={create_UUID()} kot={kot} changestatus={changeStatus} kotStatusId={kot.KOTStatusId} />
+      ))} */}
+      <FlatList
+        style={{ width: '100%', top: 35 }}
         data={KOTS}
-        renderItem={({ item, index }) => <KotCard key={index} kot={item} changestatus={changeStatus} kotStatusId={item.KOTStatusId} />}
+        snapToAlignment='start'
+        // ListHeaderComponent={listHeader}
+        // stickyHeaderIndices={[0]}
+        renderItem={({ item, index }) => <KotCard key={index} kot={item} changestatus={changeStatus} changeItemStatus={changeItemStatus} update_helper={update_helper} />}
         keyExtractor={item => item.refid}
-      /> */}
-      </ScrollView>
-    </View>
+      />
+      {/* </ScrollView> */}
+    </View >
   );
 }
 
@@ -1965,7 +2058,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'scroll',
-    backgroundColor: '#212121'
+    // backgroundColor: '#212121'
   },
   title: {
     fontSize: 20,
