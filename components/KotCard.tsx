@@ -10,6 +10,7 @@ import { Text, View } from './Themed';
 import useInterval from '../utils/timer'
 import { Feather } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
+import { KOT } from '../types';
 
 interface Props {
     kot: any;
@@ -25,7 +26,7 @@ const colors = {
     'red': '#f24e40'
 }
 
-export default function KotCard({ kot, changestatus, changeItemStatus, update_helper }: { kot: any, changestatus: any, changeItemStatus: any, update_helper: boolean }) {
+export default function KotCard({ kot, changestatus, changeItemStatus, update_helper }: { kot: KOT, changestatus: any, changeItemStatus: any, update_helper: boolean }) {
 
     const [KOT, setKOT] = useState(kot);
     const [hide, setHide] = useState(false);
@@ -46,7 +47,7 @@ export default function KotCard({ kot, changestatus, changeItemStatus, update_he
 
     useInterval(() => {
         const current_time = new Date().getTime()
-        const delivery_time = new Date(KOT.DeliveryDateTime).getTime()
+        const delivery_time = new Date(KOT.deliverytimestamp).getTime()
         if (delivery_time) {
             setTimeLeft((delivery_time > current_time) ? new Date(delivery_time - current_time).toISOString().substr(11, 8) : "00:00")
             // console.log(KOT.ordername)
@@ -145,7 +146,7 @@ export default function KotCard({ kot, changestatus, changeItemStatus, update_he
                 <View style={[styles.cardFooter]}>
                     <View style={[styles.carFooterLeft]}>
                         <Text><Text style={{ fontWeight: 'bold' }}>Delivery Time: </Text>
-                            {KOT.DeliveryDateTime}</Text>
+                            {KOT.deliverytimestamp}</Text>
                         <TouchableOpacity onPress={() => (KOT.KOTStatusId - 1) > 0 ? changeStatus(KOT.KOTStatusId - 1, KOT.refid) : console.log("lowest status reached.")}>
                             <Text lightColor='red'>{"Undo"}</Text>
                         </TouchableOpacity>

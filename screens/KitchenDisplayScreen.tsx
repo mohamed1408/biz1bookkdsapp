@@ -1958,24 +1958,24 @@ const colors = {
 
 export default function KitchenDisplayScreen({ navigation }: RootTabScreenProps<'KitchenDisplay'>) {
 
-  React.useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <Pressable
-          // onPress={() => setShowFloors(true)}
-          style={({ pressed }) => ({
-            opacity: pressed ? 0.5 : 1,
-          })}>
-          <MaterialIcons
-            name="menu"
-            size={25}
-            color={'#2f95dc'}
-            style={{ marginRight: 15 }}
-          />
-        </Pressable>
-      )
-    })
-  })
+  // React.useLayoutEffect(() => {
+  //   navigation.setOptions({
+  //     headerRight: () => (
+  //       <Pressable
+  //         // onPress={() => setShowFloors(true)}
+  //         style={({ pressed }) => ({
+  //           opacity: pressed ? 0.5 : 1,
+  //         })}>
+  //         <MaterialIcons
+  //           name="menu"
+  //           size={25}
+  //           color={'#2f95dc'}
+  //           style={{ marginRight: 15 }}
+  //         />
+  //       </Pressable>
+  //     )
+  //   })
+  // })
 
   const _kots: KOT[] = []
 
@@ -1984,9 +1984,9 @@ export default function KitchenDisplayScreen({ navigation }: RootTabScreenProps<
   const [KOTS, setKOTS] = useState(_kots);
   const [update_helper, indicateUpdate] = useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
+  const [statusFilter, setStatusFilter] = React.useState(0);
 
   useEffect(() => {
-    // console.log(config.socket.eve)
     socketConfig()
     getKots()
   }, []);
@@ -1997,11 +1997,9 @@ export default function KitchenDisplayScreen({ navigation }: RootTabScreenProps<
 
   const getKots = () => {
     api.getkots(new URL('getKots', config.url).href, config.KOTGroupId).then(response => {
-      // console.log(response.data)
       setKOTS(response.data.kots.sort((a: any, b: any) => compare(a.kotTimeStamp, b.kotTimeStamp)))
     }, error => {
       console.log(error, new URL('getdbdata', config.url).href)
-      // console.log(config, new URL('getdbdata', config.url).href, error)
     })
   }
 
@@ -2011,28 +2009,23 @@ export default function KitchenDisplayScreen({ navigation }: RootTabScreenProps<
 
   const socketConfig = () => {
     console.log("configuring socket events...")
-    config.socket.on("kot:new", onNewKot)
+    config.socket.off("kot:new").on("kot:new", onNewKot)
   }
 
   const onNewKot = (payload: any) => {
     console.log(payload)
     if (payload.KOTGroupId == config.KOTGroupId) {
-      // console.log("new kot")
       getKots()
       notify("New KOT!")
     }
   }
 
   const changeStatus = (statusId: number, refid: string) => {
-    // KOTS.push(kot)
     let _kots = KOTS
     _kots.filter(x => x.refid == refid)[0].KOTStatusId = statusId
-    // _kot = { ..._kot }
-    // _kots = [..._kots]
     setKOTS(_kots)
     indicateUpdate(!update_helper)
-    config.socket.emit("kot:statusChange")
-    console.log(refid + " statusid: ", KOTS.filter(x => x.refid == refid)[0].KOTStatusId)
+    config.socket.emit("kot:statusChange", { refid: refid, KOTStatusId: statusId })
   }
 
   const changeItemStatus = (kotrefid: string, product_key: string, completed: boolean) => {
@@ -2046,11 +2039,10 @@ export default function KitchenDisplayScreen({ navigation }: RootTabScreenProps<
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     api.getkots(new URL('getKots', config.url).href, config.KOTGroupId).then(response => {
-      // console.log(response.data)
-      setKOTS(response.data.kots)
+      console.log(config.KOTGroupId, config.KOTGroup)
+      setKOTS(response.data.kots.sort((a: any, b: any) => compare(a.kotTimeStamp, b.kotTimeStamp)))
       setRefreshing(false)
     }, error => {
-      // console.log(config, new URL('getdbdata', config.url).href, error)
       setRefreshing(false)
     })
   }, []);
@@ -2065,36 +2057,24 @@ export default function KitchenDisplayScreen({ navigation }: RootTabScreenProps<
     return uuid;
   }
 
-  const listHeader = () => {
-    return (
-      <Picker
-      // selectedValue={selectedLanguage}
-      // onValueChange={(itemValue, itemIndex) =>
-      //   setSelectedLanguage(itemValue)}
-      >
-        <Picker.Item label="Java" value="java" />
-        <Picker.Item label="JavaScript" value="js" />
-      </Picker>
-    )
-  }
-
   return (
     <View style={styles.container} >
       <View style={{ position: 'absolute', zIndex: 1000, top: 0, width: '100%' }}>
         <Picker
-          // selectedValue={selectedLanguage}
-          onValueChange={(itemValue, itemIndex) =>
-            console.log(itemValue)}
-        >
+          selectedValue={statusFilter.toString()}
+          mode='dropdown'
+          onValueChange={(itemValue, itemIndex) => {
+            console.log(itemValue, typeof itemValue)
+            setStatusFilter(+itemValue)
+          }}>
           <Picker.Item label="All" value="0" />
-          <Picker.Item label="Accepted" value="1" />
-          <Picker.Item label="Preparing" value="2" />
+          <Picker.Item label="Pending" value="1" />
           <Picker.Item label="Completed" value="3" />
         </Picker>
       </View>
       <FlatList
         style={{ width: '100%', top: 35, marginBottom: 35 }}
-        data={KOTS}
+        data={KOTS.filter(x => statusFilter == 0 || x.KOTStatusId == statusFilter)}
         snapToAlignment='start'
         refreshControl={<RefreshControl
           refreshing={refreshing}

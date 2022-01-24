@@ -46,22 +46,27 @@ export enum Theme {
 }
 
 export type KOT = {
-  KOTStatusId: number;
-  Instruction: string;
-  KOTNo: number;
-  OrderId: null;
-  Items: (Items)[];
-  CompanyId: number;
-  StoreId: number;
-  KOTGroupId: number;
-  added: (Items)[];
-  removed: (Items)[];
-  CreatedDate: string;
-  ModifiedDate: string;
-  invoiceno: string;
-  ordertypeid: number;
-  refid: string;
-  _id: string;
+  Id: number
+  KOTStatusId: number
+  Instruction: string
+  KOTNo: number
+  OrderId: number
+  CreatedDate: string
+  Items: Array<Items>
+  ModifiedDate: string
+  CompanyId: number
+  StoreId: number
+  KOTGroupId: number
+  added: Array<Items>
+  removed: Array<Items>
+  isprinted: boolean
+  orderrefid: string
+  refid: string
+  invoiceno: string
+  ordertypeid: number
+  ordername: string
+  deliverytimestamp: number
+  kotTimeStamp: number
 }
 export type Items = {
   DiscType: number;
