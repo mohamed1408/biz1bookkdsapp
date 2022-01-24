@@ -1,7 +1,7 @@
 import * as WebBrowser from 'expo-web-browser';
 import moment from 'moment';
 import React, { FC, useEffect, useState } from 'react';
-import { StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, FlatList, TouchableOpacity, Alert, View as RnView } from 'react-native';
 import Checkbox from 'expo-checkbox';
 
 import Colors from '../constants/Colors';
@@ -9,6 +9,7 @@ import { MonoText } from './StyledText';
 import { Text, View } from './Themed';
 import useInterval from '../utils/timer'
 import { Feather } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 
 interface Props {
     kot: any;
@@ -68,17 +69,19 @@ export default function KotCard({ kot, changestatus, changeItemStatus, update_he
 
     const getStatusBtn = () => {
         if (KOT.KOTStatusId == 1) {
-            return (<TouchableOpacity
-                style={[styles.button, { backgroundColor: colors.yellow }]}
-                onPress={() => { changeStatus(2, KOT.refid) }}>
-                <Text style={{ color: 'white' }}>Start</Text>
-            </TouchableOpacity>)
+            return (
+                <TouchableOpacity
+                    style={[styles.button, { backgroundColor: colors.yellow }]}
+                    onPress={() => { changeStatus(2, KOT.refid) }}>
+                    <Text style={{ color: 'white' }}>Start</Text>
+                </TouchableOpacity>)
         } else if (KOT.KOTStatusId == 2) {
-            return (<TouchableOpacity
-                style={[styles.button, { backgroundColor: colors.green }]}
-                onPress={() => { changeStatus(3, KOT.refid) }}>
-                <Text style={{ color: 'white' }}>Complete</Text>
-            </TouchableOpacity>)
+            return (
+                <TouchableOpacity
+                    style={[styles.button, { backgroundColor: colors.green, flex: 1 }]}
+                    onPress={() => { changeStatus(3, KOT.refid) }}>
+                    <Text style={{ color: 'white' }}>Complete</Text>
+                </TouchableOpacity>)
         }
     }
 
@@ -105,6 +108,16 @@ export default function KotCard({ kot, changestatus, changeItemStatus, update_he
         )
     }
 
+    const create_UUID = () => {
+        var dt = new Date().getTime();
+        var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+          var r = (dt + Math.random() * 16) % 16 | 0;
+          dt = Math.floor(dt / 16);
+          return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+        });
+        return uuid;
+      }
+    
     return (
         <View style={[styles.cardContainer]}>
             <View style={[styles.card]}>
@@ -122,9 +135,9 @@ export default function KotCard({ kot, changestatus, changeItemStatus, update_he
                 {/* <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" /> */}
                 <View style={[styles.cardBody]}>
                     <FlatList
-                        key={KOT.refid + "#"}
+                        // key={create_UUID()}
                         data={KOT.Items}
-                        keyExtractor={(item, index) => item.ProductKey}
+                        keyExtractor={(item, index) => create_UUID()}
                         renderItem={({ item, index }) => kotItem(item, index)}
                     />
                 </View>
@@ -133,17 +146,14 @@ export default function KotCard({ kot, changestatus, changeItemStatus, update_he
                     <View style={[styles.carFooterLeft]}>
                         <Text><Text style={{ fontWeight: 'bold' }}>Delivery Time: </Text>
                             {KOT.DeliveryDateTime}</Text>
+                        <TouchableOpacity onPress={() => (KOT.KOTStatusId - 1) > 0 ? changeStatus(KOT.KOTStatusId - 1, KOT.refid) : console.log("lowest status reached.")}>
+                            <Text lightColor='red'>{"Undo"}</Text>
+                        </TouchableOpacity>
                         {/* <Text><Text style={{ fontWeight: 'bold' }}>Remaining Time: </Text>
                             2 Hrs, 30 Mins</Text> */}
                     </View>
                     <View style={[styles.carFooterRight]}>
                         {getStatusBtn()}
-                        {/* <TouchableOpacity
-                            // disabled={hide}
-                            style={styles.button}
-                            onPress={() => { changeStatus(1, KOT.refid) }}>
-                            <Text>Start</Text>
-                        </TouchableOpacity> */}
                     </View>
                 </View>
             </View>
@@ -202,22 +212,17 @@ const styles = StyleSheet.create({
     carFooterRight: {
         flex: 1,
         alignItems: 'flex-end',
+        display: 'flex',
     },
     button: {
         alignItems: "center",
         // backgroundColor: "#DDDDDD",
         padding: 10,
         borderRadius: 3,
-        elevation: 10
+        elevation: 3
     },
     textStrikeThrough: {
         textDecorationLine: 'line-through',
         textDecorationStyle: 'solid',
     }
 });
-
-// const areEqual = (prevProps: any, nextProps: any) => {
-//     console.log(prevProps, nextProps)
-//     // Alert.alert(prevProps, nextProps)
-//     return true
-// }

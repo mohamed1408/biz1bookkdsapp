@@ -1,13 +1,13 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import React, { useRef, useState } from 'react';
-import { FlatList, Pressable, ScrollView, StyleSheet } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { FlatList, Pressable, ToastAndroid, StyleSheet, RefreshControl } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 
-import EditScreenInfo from '../components/EditScreenInfo';
-// import { KotCard } from '../components/KotCard';
 import KotCard from "../components/KotCard"
-import { Text, View } from '../components/Themed';
-import { RootTabScreenProps } from '../types';
+import { View } from '../components/Themed';
+import { RootTabScreenProps, KOT } from '../types';
+import api from '../utils/Api'
+import { useConfig } from '../contexts/context'
 
 const DATA = [
   {
@@ -1977,8 +1977,52 @@ export default function KitchenDisplayScreen({ navigation }: RootTabScreenProps<
     })
   })
 
-  const [KOTS, setKOTS] = useState(DATA);
+  const _kots: KOT[] = []
+
+  const { config, setConfig } = useConfig()
+
+  const [KOTS, setKOTS] = useState(_kots);
   const [update_helper, indicateUpdate] = useState(true);
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  useEffect(() => {
+    // console.log(config.socket.eve)
+    socketConfig()
+    getKots()
+  }, []);
+
+  const notify = (message: string) => {
+    ToastAndroid.show(message, ToastAndroid.SHORT);
+  };
+
+  const getKots = () => {
+    api.getkots(new URL('getKots', config.url).href, config.KOTGroupId).then(response => {
+      // console.log(response.data)
+      setKOTS(response.data.kots.sort((a: any, b: any) => compare(a.kotTimeStamp, b.kotTimeStamp)))
+    }, error => {
+      console.log(error, new URL('getdbdata', config.url).href)
+      // console.log(config, new URL('getdbdata', config.url).href, error)
+    })
+  }
+
+  const compare = (a: number, b: number) => {
+    return (a - b) * Math.abs((a - b))
+  }
+
+  const socketConfig = () => {
+    console.log("configuring socket events...")
+    config.socket.on("kot:new", onNewKot)
+  }
+
+  const onNewKot = (payload: any) => {
+    console.log(payload)
+    if (payload.KOTGroupId == config.KOTGroupId) {
+      // console.log("new kot")
+      getKots()
+      notify("New KOT!")
+    }
+  }
+
   const changeStatus = (statusId: number, refid: string) => {
     // KOTS.push(kot)
     let _kots = KOTS
@@ -1987,6 +2031,7 @@ export default function KitchenDisplayScreen({ navigation }: RootTabScreenProps<
     // _kots = [..._kots]
     setKOTS(_kots)
     indicateUpdate(!update_helper)
+    config.socket.emit("kot:statusChange")
     console.log(refid + " statusid: ", KOTS.filter(x => x.refid == refid)[0].KOTStatusId)
   }
 
@@ -1996,6 +2041,19 @@ export default function KitchenDisplayScreen({ navigation }: RootTabScreenProps<
     setKOTS(_kots)
     indicateUpdate(!update_helper)
   }
+
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    api.getkots(new URL('getKots', config.url).href, config.KOTGroupId).then(response => {
+      // console.log(response.data)
+      setKOTS(response.data.kots)
+      setRefreshing(false)
+    }, error => {
+      // console.log(config, new URL('getdbdata', config.url).href, error)
+      setRefreshing(false)
+    })
+  }, []);
 
   const create_UUID = () => {
     var dt = new Date().getTime();
@@ -2034,20 +2092,17 @@ export default function KitchenDisplayScreen({ navigation }: RootTabScreenProps<
           <Picker.Item label="Completed" value="3" />
         </Picker>
       </View>
-      {/* <ScrollView style={{ width: '100%', backgroundColor: '#212121' }}> */}
-      {/* {KOTS.map((kot, index) => (
-        <KotCard key={create_UUID()} kot={kot} changestatus={changeStatus} kotStatusId={kot.KOTStatusId} />
-      ))} */}
       <FlatList
-        style={{ width: '100%', top: 35 }}
+        style={{ width: '100%', top: 35, marginBottom: 35 }}
         data={KOTS}
         snapToAlignment='start'
-        // ListHeaderComponent={listHeader}
-        // stickyHeaderIndices={[0]}
+        refreshControl={<RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+        />}
         renderItem={({ item, index }) => <KotCard key={index} kot={item} changestatus={changeStatus} changeItemStatus={changeItemStatus} update_helper={update_helper} />}
-        keyExtractor={item => item.refid}
+        keyExtractor={item => create_UUID()}
       />
-      {/* </ScrollView> */}
     </View >
   );
 }
@@ -2058,7 +2113,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'scroll',
-    // backgroundColor: '#212121'
   },
   title: {
     fontSize: 20,

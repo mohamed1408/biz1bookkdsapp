@@ -6,7 +6,7 @@ import { io, Socket } from "socket.io-client";
 import useCachedResources from './hooks/useCachedResources';
 import useColorScheme from './hooks/useColorScheme';
 import Navigation from './navigation';
-import { ThemeContext, Theme, SocketContext, SocketUrlContext } from './contexts/context'
+import { UserContext, Theme, Config } from './contexts/context'
 
 export default function App() {
 
@@ -14,16 +14,46 @@ export default function App() {
   const isLoadingComplete = useCachedResources();
   const colorScheme = useColorScheme();
 
+  const _config: Config = {
+    url: "",
+    KOTGroupId: 0,
+    KOTGroup: '',
+    socket: io(),
+    theme: Theme.Light
+  }
 
+  const [config, setConfig] = React.useState(_config)
+
+  config.socket.on("testback", (payload) => {
+    console.log("Test Success", payload)
+    // config.socket.emit("testEmit", "from kds app")
+  })
+
+  config.socket.on("tableorder:update", (payload) => {
+    console.log("tableorder:update", payload)
+    // config.socket.emit("testEmit", "from kds app")
+  })
+
+  config.socket.on("connect", () => {
+    console.log("Connected!")
+    console.log("testing...")
+    config.socket.emit("testEmit", "from kds app")
+  })
+
+  config.socket.on("error", (error) => {
+    console.log(error)
+  })
 
   if (!isLoadingComplete) {
     return null;
   } else {
     return (
-      <SafeAreaProvider>
-        <Navigation colorScheme={theme} />
-        <StatusBar />
-      </SafeAreaProvider>
+      <UserContext.Provider value={{ config, setConfig }}>
+        <SafeAreaProvider>
+          <Navigation colorScheme={theme} />
+          <StatusBar />
+        </SafeAreaProvider>
+      </UserContext.Provider>
     );
   }
 }

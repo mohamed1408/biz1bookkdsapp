@@ -20,9 +20,9 @@ const linking: LinkingOptions<RootStackParamList> = {
               TabOneScreen: 'one',
             },
           },
-          TabTwo: {
+          More: {
             screens: {
-              TabTwoScreen: 'two',
+              MoreScreen: 'two',
             },
           },
           KitchenDisplay: {
@@ -34,6 +34,8 @@ const linking: LinkingOptions<RootStackParamList> = {
       },
       Modal: 'modal',
       NotFound: '*',
+      Camera: 'Camera',
+      Login: 'Login',
     },
   },
 };
