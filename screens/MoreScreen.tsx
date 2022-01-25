@@ -74,7 +74,7 @@ export default function MoreScreen({ navigation }: RootTabScreenProps<'More'>) {
   }
 
   const logOut = async () => {
-    setConfig({ url: "", KOTGroupId: 0, socket: io(), theme: Theme.Light, KOTGroup: "" })
+    setConfig({ url: "", KOTGroupId: 0, socket: io(), theme: Theme.Light, KOTGroup: "", indicator: !config.indicator })
     const keys = ['@serverurl', '@kotgroupid']
     await AsyncStorage.multiRemove(keys)
     navigation.replace('Login')

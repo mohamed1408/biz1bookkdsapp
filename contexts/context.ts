@@ -26,6 +26,7 @@ export type Config = {
     socket: Socket;
     KOTGroupId: number;
     KOTGroup: string;
+    indicator: boolean;
     theme: "light" | "dark";
 }
 
@@ -43,5 +44,5 @@ export const useSocket = () => useContext(SocketContext);
 export const SocketUrlContext = createContext<SocketUrlContextType>({ url: "", setUrl: theme => console.warn('no socketurl provider') });
 export const useSocketUrl = () => useContext(SocketUrlContext);
 
-export const UserContext = createContext<UserContextType>({ config: { url: "", KOTGroupId: 0, socket: io(), theme: Theme.Light, KOTGroup: "" }, setConfig: theme => console.warn('no config provider') });
+export const UserContext = createContext<UserContextType>({ config: { url: "", KOTGroupId: 0, socket: io(), theme: Theme.Light, KOTGroup: "", indicator: false }, setConfig: theme => console.warn('no config provider') });
 export const useConfig = () => useContext(UserContext);

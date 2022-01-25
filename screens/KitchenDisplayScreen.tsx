@@ -1987,6 +1987,7 @@ export default function KitchenDisplayScreen({ navigation }: RootTabScreenProps<
   const [statusFilter, setStatusFilter] = React.useState(0);
 
   useEffect(() => {
+    setConfig({ ...config, indicator: !config.indicator })
     socketConfig()
     getKots()
   }, []);
