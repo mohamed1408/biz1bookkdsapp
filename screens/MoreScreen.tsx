@@ -1,16 +1,17 @@
 import { AntDesign, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as React from 'react';
 import { useState } from 'react';
+import { Avatar, BottomSheet, ListItem } from "react-native-elements";
 import { Dimensions, Pressable, StyleSheet, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import QRCode from 'react-native-qrcode-svg';
 
 import { Text, View } from '../components/Themed';
 import { useConfig } from '../contexts/context';
 import { RootTabScreenProps, KOTGroup, Theme } from '../types';
-import { Avatar, BottomSheet, ListItem } from "react-native-elements";
 import IMAGES from '../assets/images/index'
 import { io } from 'socket.io-client';
-import QRCode from 'react-native-qrcode-svg';
+import api from '../utils/Api'
 
 const DATA = [
   { "Id": 3, "KOTGroupId": 4, "StoreId": 22, "CompanyId": 3, "Description": "Tea" },
@@ -48,18 +49,33 @@ export default function MoreScreen({ navigation }: RootTabScreenProps<'More'>) {
 
 
   const [searchText, setSearchText] = useState("");
-  const [ktgrps, setKtgrps] = useState(DATA);
+  const [ktgrps, setKtgrps] = useState(ktempy);
   const [cKg, setCKG] = useState(_kotgrp)
   const [sheetVisiblity, setSheetVisiblity] = useState(false);
   const [shareQR, setShareQR] = useState(false);
 
   React.useEffect(() => {
-    if (DATA.some(x => x.KOTGroupId == config.KOTGroupId)) {
-      let currentKG = DATA.filter(x => x.KOTGroupId == config.KOTGroupId)[0]
-      setCKG(currentKG)
-      setSearchText(currentKG.Description)
-    }
+    getKOTGroups()
+    // if (DATA.some(x => x.KOTGroupId == config.KOTGroupId)) {
+    //   let currentKG = DATA.filter(x => x.KOTGroupId == config.KOTGroupId)[0]
+    //   setCKG(currentKG)
+    //   setSearchText(currentKG.Description)
+    // }
   }, []);
+
+  const getKOTGroups = () => {
+    api.getkotgroups(new URL('getdbdata', config.url).href).then(async dbdata => {
+      const ktgrps: KOTGroup[] = dbdata.data.printersettings[0].kotgroups
+      setKtgrps(ktgrps)
+      if (ktgrps.some(x => x.KOTGroupId == config.KOTGroupId)) {
+        let currentKG = ktgrps.filter(x => x.KOTGroupId == config.KOTGroupId)[0]
+        setCKG(currentKG)
+      }
+      // setSheetVisiblity(true)
+    }, async err => {
+      console.log("Failed to fetch kotgrps", err)
+    })
+  }
 
   const search = (term: string) => {
     setKtgrps(term ? DATA.filter(x => x.Description.toLowerCase().includes(term.toLowerCase())) : [])

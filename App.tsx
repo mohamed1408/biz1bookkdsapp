@@ -19,25 +19,16 @@ export default function App() {
     KOTGroupId: 0,
     KOTGroup: '',
     socket: io(),
-    theme: Theme.Light
+    theme: Theme.Light,
+    indicator: false
   }
 
   const [config, setConfig] = React.useState(_config)
 
-  config.socket.on("testback", (payload) => {
-    console.log("Test Success", payload)
-    // config.socket.emit("testEmit", "from kds app")
-  })
-
-  config.socket.on("tableorder:update", (payload) => {
-    console.log("tableorder:update", payload)
-    // config.socket.emit("testEmit", "from kds app")
-  })
-
   config.socket.on("connect", () => {
     console.log("Connected!")
-    console.log("testing...")
-    config.socket.emit("testEmit", "from kds app")
+    // console.log("testing...")
+    // config.socket.emit("testEmit", "from kds app")
   })
 
   config.socket.on("error", (error) => {
