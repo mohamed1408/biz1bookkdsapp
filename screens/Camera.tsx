@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Button } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Button, Dimensions } from 'react-native';
 import { Camera } from 'expo-camera';
 import { io } from 'socket.io-client';
 import { BottomSheet, ListItem } from 'react-native-elements';
@@ -24,6 +24,10 @@ export default function CameraScreen({ navigation }: RootStackScreenProps<'Camer
     const [serverUrl, setServerUrl] = useState("");
     const [sheetVisiblity, setSheetVisiblity] = useState(false);
     const [kotgroups, setKotgroups] = useState(ktempy);
+    const [isRatioSet, setIsRatioSet] = useState(false);
+
+    const { height, width } = Dimensions.get('window');
+    const screenRatio = height / width;
 
     useEffect(() => {
         (async () => {
@@ -31,6 +35,7 @@ export default function CameraScreen({ navigation }: RootStackScreenProps<'Camer
             setHasPermission(status === 'granted');
         })();
     }, []);
+
 
     const handleBarCodeScanned = ({ type, data }: any) => {
         setScanned(true);
@@ -45,6 +50,7 @@ export default function CameraScreen({ navigation }: RootStackScreenProps<'Camer
                 // navigation.replace('Root')
             }
         }, async error => {
+            setScanned(false);
             console.log("http://" + data + " is not the server")
         })
     };
@@ -61,7 +67,7 @@ export default function CameraScreen({ navigation }: RootStackScreenProps<'Camer
 
     const setKG = async (KG: KOTGroup) => {
         console.log(serverUrl)
-        await AsyncStorage.multiSet([["@serverurl", serverUrl],["@kotgroupid", KG.KOTGroupId.toString()]])
+        await AsyncStorage.multiSet([["@serverurl", serverUrl], ["@kotgroupid", KG.KOTGroupId.toString()]])
         setConfig({ ...config, url: serverUrl, socket: io(serverUrl), KOTGroupId: KG.KOTGroupId, KOTGroup: KG.Description })
         // setCKG(KG)
         setSheetVisiblity(false)
@@ -83,11 +89,11 @@ export default function CameraScreen({ navigation }: RootStackScreenProps<'Camer
         <View style={styles.container}>
             <Camera
                 onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-                ratio='1:1'
+                ratio="16:9"
                 barCodeScannerSettings={{
                     barCodeTypes: ['qr'],
                 }}
-                style={StyleSheet.absoluteFillObject}
+                style={{ height: Math.round((width * 16) / 9), width: '100%' }}
             />
             {/* {scanned && <Button title={'Tap to Scan Again'} onPress={() => setScanned(false)} />} */}
             <BottomSheet modalProps={{}} isVisible={sheetVisiblity}>
