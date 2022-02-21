@@ -6,6 +6,7 @@
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { io, Socket } from 'socket.io-client';
 
 declare global {
   namespace ReactNavigation {
@@ -34,8 +35,6 @@ export type RootTabParamList = {
 
 export type KOTGroup = {
   Id: number;
-  KOTGroupId: number;
-  StoreId: number;
   CompanyId: number;
   Description: string;
 };
@@ -113,6 +112,7 @@ export type Items = {
   kotquantity: number;
   completed: boolean;
 }
+
 export type OptionGroup = {
   Id: number;
   Name: string;
@@ -121,6 +121,7 @@ export type OptionGroup = {
   selected: boolean;
   Option: (Option)[];
 }
+
 export type Option = {
   Id: number;
   DeliveryPrice: number;
@@ -129,6 +130,28 @@ export type Option = {
   selected: boolean;
   TakeawayPrice: number;
   IsSingleQtyOption: boolean;
+}
+
+export type LoginForm = {
+  emailId: string;
+  password: string;
+}
+
+export class SockObj {
+  socket: Socket;
+  event: string;
+  message: string;
+  url: string;
+  constructor(url: string) {
+    this.socket = io(url);
+    this.event = "event_";
+    this.message = "";
+    this.url = url;
+  }
+
+  emit(): void {
+    this.socket.emit(this.event, this.message)
+  }
 }
 
 export type RootTabScreenProps<Screen extends keyof RootTabParamList> = CompositeScreenProps<

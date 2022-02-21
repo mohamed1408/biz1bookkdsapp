@@ -8,6 +8,8 @@ import useColorScheme from './hooks/useColorScheme';
 import Navigation from './navigation';
 import { UserContext, Theme, Config } from './contexts/context'
 
+// import * as ScreenOrientation from 'expo-screen-orientation';
+
 export default function App() {
 
   const [theme, setTheme] = React.useState(Theme.Light);
@@ -15,25 +17,43 @@ export default function App() {
   const colorScheme = useColorScheme();
 
   const _config: Config = {
-    url: "",
+    CompanyId: 0,
     KOTGroupId: 0,
     KOTGroup: '',
-    socket: io(),
+    sockets: [],
     theme: Theme.Light,
     indicator: false
   }
 
   const [config, setConfig] = React.useState(_config)
 
-  config.socket.on("connect", () => {
-    console.log("Connected!")
-    // console.log("testing...")
-    // config.socket.emit("testEmit", "from kds app")
-  })
+  // config.socket.on("connect", () => {
+  //   console.log("Connected!")
+  //   // console.log("testing...")
+  //   // config.socket.emit("testEmit", "from kds app")
+  // })
 
-  config.socket.on("error", (error) => {
-    console.log(error)
-  })
+  // config.socket.on("error", (error) => {
+  //   console.log(error)
+  // })
+
+  // const or = ScreenOrientation.getOrientationAsync()
+
+  // or.then(data => {
+  //   console.log("orientation", data)
+  // })
+
+  // ScreenOrientation.getOrientationLockAsync().then(data => {
+  //   console.log("orientation Lock", data)
+  // })
+
+  // ScreenOrientation.getPlatformOrientationLockAsync().then(data => {
+  //   console.log("orientation Platform Lock", data)
+  // })
+
+  // ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT).then(data => {
+  //   console.log("orientation change", data)
+  // })
 
   if (!isLoadingComplete) {
     return null;

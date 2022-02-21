@@ -1,5 +1,9 @@
 import _ from 'lodash';
 import axios from 'axios'
+import { LoginForm } from '../types'
+
+const apiUrl = "https://biz1pos.azurewebsites.net"
+const conveyor = "https://biz1posapi-rv7.conveyor.cloud"
 
 const execute = async (url: string, method = 'GET', { params = {}, queries = {}, payloads = {}, headers = {} } = {}) => {
     const base = url.replace(/\/$/, '');
@@ -19,6 +23,21 @@ const execute = async (url: string, method = 'GET', { params = {}, queries = {},
     // console.log("Request", options)
     return await axios(options);
 };
+
+const login = (form: LoginForm) => {
+    const formData = `EmailId=${form.emailId}&Password=${form.password}`
+    // console.log(axios.post(apiUrl + "/api/LogIn/WebLogIn", formData))
+    return axios.post(apiUrl + "/api/LogIn/WebLogIn", formData, {
+        headers: {
+            "content-type": "application/x-www-form-urlencoded"
+        },
+        timeout: 1000,
+    })
+}
+
+const kotGroups = (companyId: number) => {
+    return axios.get(apiUrl + "/api/KOTGroup/GetIndex?CompanyId=" + companyId)
+}
 
 const getdineindata = (url: string) => {
     return axios.post(url, ["diningarea", "diningtable"])
@@ -65,4 +84,6 @@ export default {
     getkotgroups: (url: string) => getkotgroups(url),
     getdineindata: (url: string) => getdineindata(url),
     checkserverstatus: (url: string) => checkserverstatus(url),
+    login: (form: LoginForm) => login(form),
+    kotGroups: (companyId: number) => kotGroups(companyId),
 };

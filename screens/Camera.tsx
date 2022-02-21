@@ -5,7 +5,7 @@ import { io } from 'socket.io-client';
 import { BottomSheet, ListItem } from 'react-native-elements';
 
 import { useConfig, useSocket, useSocketUrl } from '../contexts/context';
-import { KOTGroup, RootStackScreenProps } from '../types';
+import { KOTGroup, RootStackScreenProps, SockObj } from '../types';
 import api from '../utils/Api'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AntDesign } from '@expo/vector-icons';
@@ -42,12 +42,14 @@ export default function CameraScreen({ navigation }: RootStackScreenProps<'Camer
         const sUrl = "http://" + data
         api.checkserverstatus(new URL('checkserverstatus', sUrl).href).then(async response => {
             if (response.data.status == 200) {
-                getKOTGroups(sUrl)
-                setServerUrl(sUrl)
+                // getKOTGroups(sUrl)
+                // setServerUrl(sUrl)
                 // setUrl(sUrl)
                 // connect(io(sUrl))
                 // await AsyncStorage.setItem("@serverurl", sUrl)
                 // navigation.replace('Root')
+                setConfig({ ...config, sockets: [...config.sockets, new SockObj(sUrl)] })
+                toRoot()
             }
         }, async error => {
             setScanned(false);
@@ -67,8 +69,8 @@ export default function CameraScreen({ navigation }: RootStackScreenProps<'Camer
 
     const setKG = async (KG: KOTGroup) => {
         console.log(serverUrl)
-        await AsyncStorage.multiSet([["@serverurl", serverUrl], ["@kotgroupid", KG.KOTGroupId.toString()]])
-        setConfig({ ...config, url: serverUrl, socket: io(serverUrl), KOTGroupId: KG.KOTGroupId, KOTGroup: KG.Description })
+        await AsyncStorage.multiSet([["@serverurl", serverUrl], ["@kotgroupid", KG.Id.toString()]])
+        setConfig({ ...config, sockets: [], KOTGroupId: KG.Id, KOTGroup: KG.Description })
         // setCKG(KG)
         setSheetVisiblity(false)
         toRoot()
@@ -96,7 +98,7 @@ export default function CameraScreen({ navigation }: RootStackScreenProps<'Camer
                 style={{ height: Math.round((width * 16) / 9), width: '100%' }}
             />
             {/* {scanned && <Button title={'Tap to Scan Again'} onPress={() => setScanned(false)} />} */}
-            <BottomSheet modalProps={{}} isVisible={sheetVisiblity}>
+            {/* <BottomSheet modalProps={{}} isVisible={sheetVisiblity}>
                 <ListItem
                     key={'cancel_sheet'}
                     onPress={() => setSheetVisiblity(false)}>
@@ -110,13 +112,14 @@ export default function CameraScreen({ navigation }: RootStackScreenProps<'Camer
                 {kotgroups.map((kg, i) => (
                     <ListItem
                         key={i}
-                        onPress={() => setKG(kg)}>
+                        // onPress={() => setKG(kg)}
+                        >
                         <ListItem.Content>
                             <ListItem.Title>{kg.Description}</ListItem.Title>
                         </ListItem.Content>
                     </ListItem>
                 ))}
-            </BottomSheet>
+            </BottomSheet> */}
         </View>
     );
 }

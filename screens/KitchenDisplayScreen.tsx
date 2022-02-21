@@ -36,7 +36,7 @@ export default function KitchenDisplayScreen({ navigation }: RootTabScreenProps<
   //     )
   //   })
   // })
-
+  let kotCache: Array<KOT> = []
   const _kots: KOT[] = []
 
   const { config, setConfig } = useConfig()
@@ -47,20 +47,22 @@ export default function KitchenDisplayScreen({ navigation }: RootTabScreenProps<
   const [statusFilter, setStatusFilter] = React.useState(0);
 
   useEffect(() => {
+    // setRefreshing(false)
     // setConfig({ ...config, indicator: !config.indicator })
     socketConfig()
-    getKots()
+    // getKots()
   }, []);
 
   const notify = (message: string) => {
     ToastAndroid.show(message, ToastAndroid.SHORT);
   };
 
-  const getKots = () => {
-    api.getkots(new URL('getKots', config.url).href, config.KOTGroupId).then((response: any) => {
-      setKOTS(response.data.kots.sort((a: any, b: any) => compare(a.kotTimeStamp, b.kotTimeStamp)))
+  const getKots = (url: string) => {
+    api.getkots(new URL('getKots', url).href, config.KOTGroupId).then((response: any) => {
+      kotCache = [...new Set([...kotCache, ...response.data.kots])]
+      setKOTS(kotCache.sort((a: any, b: any) => compare(a.kotTimeStamp, b.kotTimeStamp)))
     }, (error: any) => {
-      console.log(error, new URL('getdbdata', config.url).href)
+      console.log(error, new URL('getdbdata', url).href)
     })
   }
 
@@ -70,16 +72,21 @@ export default function KitchenDisplayScreen({ navigation }: RootTabScreenProps<
 
   const socketConfig = () => {
     console.log("configuring socket events...")
-    config.socket.off("kot:new").on("kot:new", onNewKot)
+    let kots = []
+    config.sockets.forEach(sock => {
+      getKots(sock.url)
+      sock.socket.off("kot:new").on("kot:new", (payl) => onNewKot(payl, sock.url))
+    })
+    // config.socket.off("kot:new").on("kot:new", onNewKot)
   }
 
-  const onNewKot = (payload: any) => {
+  const onNewKot = (payload: any, url: string) => {
     console.log(payload)
     if (payload.KOTGroupId == config.KOTGroupId) {
-      getKots()
+      getKots(url)
       notify("New KOT!")
     } else if (payload.KOTGroupId == 0) {
-      getKots()
+      getKots(url)
       notify("Updating KOT List...")
     }
   }
@@ -89,7 +96,7 @@ export default function KitchenDisplayScreen({ navigation }: RootTabScreenProps<
     _kots.filter(x => x.refid == refid)[0].KOTStatusId = statusId
     setKOTS(_kots)
     indicateUpdate(!update_helper)
-    config.socket.emit("kot:statusChange", { refid: refid, KOTStatusId: statusId })
+    // config.socket.emit("kot:statusChange", { refid: refid, KOTStatusId: statusId })
   }
 
   const changeItemStatus = (kotrefid: string, product_key: string, completed: boolean) => {
@@ -99,16 +106,35 @@ export default function KitchenDisplayScreen({ navigation }: RootTabScreenProps<
     indicateUpdate(!update_helper)
   }
 
-
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
-    api.getkots(new URL('getKots', config.url).href, config.KOTGroupId).then((response: any) => {
-      console.log(config.KOTGroupId, config.KOTGroup)
-      setKOTS(response.data.kots.sort((a: any, b: any) => compare(a.kotTimeStamp, b.kotTimeStamp)))
-      setRefreshing(false)
-    }, (error: any) => {
-      setRefreshing(false)
+    let kots: Array<KOT> = []
+    let fetched = 0
+    config.sockets.forEach(sock => {
+      api.getkots(new URL('getKots', sock.url).href, config.KOTGroupId).then((response: any) => {
+        fetched++
+        kots = [...kots, ...response.data.kots]
+        if (fetched == config.sockets.length) {
+          console.log(kots.length, kots)
+          kotCache = kots.sort((a: any, b: any) => compare(a.kotTimeStamp, b.kotTimeStamp))
+          setKOTS(kots.sort((a: any, b: any) => compare(a.kotTimeStamp, b.kotTimeStamp)))
+          setRefreshing(false)
+        }
+      }, (error: any) => {
+        fetched++
+        if (fetched == config.sockets.length) {
+          setRefreshing(false)
+        }
+      })
+
     })
+    // api.getkots(new URL('getKots', config.url).href, config.KOTGroupId).then((response: any) => {
+    //   console.log(config.KOTGroupId, config.KOTGroup)
+    //   setKOTS(response.data.kots.sort((a: any, b: any) => compare(a.kotTimeStamp, b.kotTimeStamp)))
+    //   setRefreshing(false)
+    // }, (error: any) => {
+    //   setRefreshing(false)
+    // })
   }, []);
 
   const create_UUID = () => {

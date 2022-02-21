@@ -1,5 +1,6 @@
 import { createContext, useContext } from 'react';
 import { io, Socket } from "socket.io-client";
+import { SockObj } from '../types';
 
 export enum Theme {
     Dark = 'dark',
@@ -22,10 +23,10 @@ export type SocketUrlContextType = {
 }
 
 export type Config = {
-    url: string;
-    socket: Socket;
+    CompanyId: number;
     KOTGroupId: number;
     KOTGroup: string;
+    sockets: Array<SockObj>;
     indicator: boolean;
     theme: "light" | "dark";
 }
@@ -44,5 +45,5 @@ export const useSocket = () => useContext(SocketContext);
 export const SocketUrlContext = createContext<SocketUrlContextType>({ url: "", setUrl: theme => console.warn('no socketurl provider') });
 export const useSocketUrl = () => useContext(SocketUrlContext);
 
-export const UserContext = createContext<UserContextType>({ config: { url: "", KOTGroupId: 0, socket: io(), theme: Theme.Light, KOTGroup: "", indicator: false }, setConfig: theme => console.warn('no config provider') });
+export const UserContext = createContext<UserContextType>({ config: { CompanyId: 0, KOTGroupId: 0, sockets: [], theme: Theme.Light, KOTGroup: "", indicator: false }, setConfig: theme => console.warn('no config provider') });
 export const useConfig = () => useContext(UserContext);
