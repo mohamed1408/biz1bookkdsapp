@@ -23,7 +23,8 @@ const colors = {
     'green': '#389b3a',
     'black': '#222222',
     'yellow': '#eeaa00',
-    'red': '#f24e40'
+    'red': '#f24e40',
+    'purple': "#800080"
 }
 
 export default function KotCard({ kot, changestatus, changeItemStatus, update_helper }: { kot: KOT, changestatus: any, changeItemStatus: any, update_helper: boolean }) {
@@ -42,6 +43,8 @@ export default function KotCard({ kot, changestatus, changeItemStatus, update_he
             setHeaderColor(colors.yellow)
         } else if (KOT.KOTStatusId == 3) {
             setHeaderColor(colors.green)
+        } else if (KOT.KOTStatusId == 4) {
+            setHeaderColor(colors.purple)
         }
     });
 
@@ -82,6 +85,13 @@ export default function KotCard({ kot, changestatus, changeItemStatus, update_he
                     style={[styles.button, { backgroundColor: colors.green, flex: 1 }]}
                     onPress={() => { changeStatus(3, KOT.refid, KOT.sockUrl) }}>
                     <Text style={{ color: 'white' }}>Complete</Text>
+                </TouchableOpacity>)
+        } else if (KOT.KOTStatusId == 3) {
+            return (
+                <TouchableOpacity
+                    style={[styles.button, { backgroundColor: colors.purple, flex: 1 }]}
+                    onPress={() => { changeStatus(4, KOT.refid, KOT.sockUrl) }}>
+                    <Text style={{ color: 'white' }}>Serve</Text>
                 </TouchableOpacity>)
         }
     }

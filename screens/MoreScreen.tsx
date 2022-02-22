@@ -2,7 +2,7 @@ import { AntDesign, Feather, Ionicons, MaterialCommunityIcons, MaterialIcons } f
 import * as React from 'react';
 import { useState } from 'react';
 import { Avatar, BottomSheet, ListItem, Badge } from "react-native-elements";
-import { ActivityIndicator, Dimensions, Pressable, StyleSheet, TouchableOpacity, ToastAndroid } from 'react-native';
+import { ActivityIndicator, Dimensions, Pressable, StyleSheet, TouchableOpacity, ToastAndroid, BackHandler } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import QRCode from 'react-native-qrcode-svg';
 import * as Network from 'expo-network';
@@ -70,6 +70,15 @@ export default function MoreScreen({ navigation }: RootTabScreenProps<'More'>) {
   React.useEffect(() => {
     getKotGroups()
     getIp()
+    const backAction = () => {
+      console.log("use back button provided");      
+      // navigation.replace('Root')
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+
+    return () => backHandler.remove();
     // if (DATA.some(x => x.KOTGroupId == config.KOTGroupId)) {
     //   let currentKG = DATA.filter(x => x.KOTGroupId == config.KOTGroupId)[0]
     //   setCKG(currentKG)
@@ -107,13 +116,10 @@ export default function MoreScreen({ navigation }: RootTabScreenProps<'More'>) {
     })
   }
 
-  const getBaseAdress = (ip: string) => {
-    const maskArr = ip.split('.')
-    return [maskArr[0], maskArr[1], maskArr[2], 'x'].join('.')
-  }
-
-  const scan = () => {
-    const baseAddress = "http://" + deviceIp.split('.').slice(0, 3).join('.') + '.'
+  const scan = async () => {
+    const ipaddress = await Network.getIpAddressAsync();
+    setDeviceIp(ipaddress)
+    const baseAddress = "http://" + ipaddress.split('.').slice(0, 3).join('.') + '.'
     const port = ":8000"
     let sockets: Array<SockObj> = []
     setScanning(true)

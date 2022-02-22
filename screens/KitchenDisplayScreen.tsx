@@ -1,11 +1,11 @@
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState } from 'react';
-import { FlatList, Pressable, ToastAndroid, StyleSheet, RefreshControl } from 'react-native';
+import { FlatList, Pressable, ToastAndroid, StyleSheet, RefreshControl, TouchableOpacity } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useFocusEffect } from '@react-navigation/native';
 
 import KotCard from "../components/KotCard"
-import { View } from '../components/Themed';
+import { Text, View } from '../components/Themed';
 import { RootTabScreenProps, KOT } from '../types';
 import api from '../utils/Api'
 import { useConfig } from '../contexts/context'
@@ -49,14 +49,7 @@ export default function KitchenDisplayScreen({ navigation }: RootTabScreenProps<
     socketConfig()
     // getKots()
   }, []);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      console.log(config.sockets.length)
-
-      // return () => unsubscribe();
-    }, [])
-  );
+  
   const notify = (message: string) => {
     ToastAndroid.show(message, ToastAndroid.SHORT);
   };
@@ -163,8 +156,8 @@ export default function KitchenDisplayScreen({ navigation }: RootTabScreenProps<
 
   return (
     <View style={styles.container} >
-      <View style={{ position: 'absolute', zIndex: 1000, top: 0, width: '100%' }}>
-        <Picker
+      <View style={{ flexDirection: 'row' }}>
+        {/* <Picker
           selectedValue={statusFilter.toString()}
           mode='dropdown'
           onValueChange={(itemValue, itemIndex) => {
@@ -173,11 +166,23 @@ export default function KitchenDisplayScreen({ navigation }: RootTabScreenProps<
           <Picker.Item label="All" value="0" />
           <Picker.Item label="Pending" value="1" />
           <Picker.Item label="Completed" value="3" />
-        </Picker>
+        </Picker> */}
+        <TouchableOpacity
+        onPress={() => setStatusFilter(0)}
+        disabled={statusFilter == 0} 
+        style={[styles.stsBtn, {elevation: statusFilter == 0 ? 0 : 3}]}>
+          <Text>Pending</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+        onPress={() => setStatusFilter(1)}
+        disabled={statusFilter == 1} 
+        style={[styles.stsBtn, {elevation: statusFilter == 1 ? 0 : 3}]}>
+          <Text>Served</Text>
+        </TouchableOpacity>
       </View>
       <FlatList
-        style={{ width: '100%', top: 35, marginBottom: 35 }}
-        data={KOTS.filter(x => statusFilter == 0 || x.KOTStatusId == statusFilter)}
+        style={{ width: '100%', marginBottom: 35 }}
+        data={KOTS.filter(x => (statusFilter == 0 && x.KOTStatusId < 4) || (statusFilter == 1 && x.KOTStatusId == 4))}
         snapToAlignment='start'
         refreshControl={<RefreshControl
           refreshing={refreshing}
@@ -242,4 +247,14 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'flex-end',
   },
+  stsBtn: {
+    flex: 1,
+    // borderWidth: 1,
+    // height: 50,
+    alignItems: 'center',
+    padding: 13,
+    margin: 10,
+    // elevation: 3,
+    backgroundColor: 'white'
+  }
 });
