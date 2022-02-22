@@ -59,12 +59,12 @@ export default function KotCard({ kot, changestatus, changeItemStatus, update_he
         return orderTypes[orderTypeId]
     }
 
-    const changeStatus = (statusId: number, refid: string) => {
+    const changeStatus = (statusId: number, refid: string, url: string) => {
         // let _kot = KOT
         // _kot.KOTStatusId = statusId
         // setKOT(_kot)
         // setHide(true)
-        changestatus(statusId, refid)
+        changestatus(statusId, refid, url)
         // console.log(KOT.KOTStatusId)
     }
 
@@ -73,14 +73,14 @@ export default function KotCard({ kot, changestatus, changeItemStatus, update_he
             return (
                 <TouchableOpacity
                     style={[styles.button, { backgroundColor: colors.yellow }]}
-                    onPress={() => { changeStatus(2, KOT.refid) }}>
+                    onPress={() => { changeStatus(2, KOT.refid, KOT.sockUrl) }}>
                     <Text style={{ color: 'white' }}>Start</Text>
                 </TouchableOpacity>)
         } else if (KOT.KOTStatusId == 2) {
             return (
                 <TouchableOpacity
                     style={[styles.button, { backgroundColor: colors.green, flex: 1 }]}
-                    onPress={() => { changeStatus(3, KOT.refid) }}>
+                    onPress={() => { changeStatus(3, KOT.refid, KOT.sockUrl) }}>
                     <Text style={{ color: 'white' }}>Complete</Text>
                 </TouchableOpacity>)
         }
@@ -147,7 +147,7 @@ export default function KotCard({ kot, changestatus, changeItemStatus, update_he
                     <View style={[styles.carFooterLeft]}>
                         <Text><Text style={{ fontWeight: 'bold' }}>Delivery Time: </Text>
                             {KOT.deliverytimestamp}</Text>
-                        <TouchableOpacity onPress={() => (KOT.KOTStatusId - 1) > 0 ? changeStatus(KOT.KOTStatusId - 1, KOT.refid) : console.log("lowest status reached.")}>
+                        <TouchableOpacity onPress={() => (KOT.KOTStatusId - 1) > 0 ? changeStatus(KOT.KOTStatusId - 1, KOT.refid, KOT.sockUrl) : console.log("lowest status reached.")}>
                             <Text lightColor='red'>{"Undo"}</Text>
                         </TouchableOpacity>
                         {/* <Text><Text style={{ fontWeight: 'bold' }}>Remaining Time: </Text>

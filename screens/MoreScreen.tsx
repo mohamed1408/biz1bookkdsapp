@@ -1,8 +1,8 @@
-import { AntDesign, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { AntDesign, Feather, Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import * as React from 'react';
 import { useState } from 'react';
-import { Avatar, BottomSheet, ListItem } from "react-native-elements";
-import { ActivityIndicator, Dimensions, Pressable, StyleSheet, TouchableOpacity } from 'react-native';
+import { Avatar, BottomSheet, ListItem, Badge } from "react-native-elements";
+import { ActivityIndicator, Dimensions, Pressable, StyleSheet, TouchableOpacity, ToastAndroid } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import QRCode from 'react-native-qrcode-svg';
 import * as Network from 'expo-network';
@@ -35,6 +35,15 @@ export default function MoreScreen({ navigation }: RootTabScreenProps<'More'>) {
             size={25}
             color={'#2f95dc'}
             style={{ marginRight: 15 }} />
+        </Pressable>
+      ),
+      headerLeft: () => (
+        <Pressable
+          onPress={() => navigation.navigate('Root')}
+          style={({ pressed }) => ({
+            opacity: pressed ? 0.5 : 1,
+          })}>
+          <Ionicons name="chevron-back" size={25} color="black" style={{ marginRight: 15 }} />
         </Pressable>
       )
     })
@@ -109,23 +118,32 @@ export default function MoreScreen({ navigation }: RootTabScreenProps<'More'>) {
     let sockets: Array<SockObj> = []
     setScanning(true)
     for (let i = 1; i < 255; i++) {
-      api.checkserverstatus(new URL('checkserverstatus', baseAddress + i).href).then(async response => {
+      api.checkserverstatus(new URL('checkserverstatus', baseAddress + i + port).href).then(async response => {
         if (response.data.status == 200) {
           sockets = [...sockets, new SockObj(baseAddress + i + port)]
-          if (i == 255) {
-            setConfig({ ...config, sockets: sockets })
-            setScanning(false)
+          if (i == 254) {
+            onScanComplete(sockets)
           }
-          // setConfig({ ...config, sockets: [...config.sockets, new SockObj(baseAddress + i + port)] })
         }
       }, async error => {
-        console.log("http://" + baseAddress + i + " is not the server")
-        if (i == 255) {
-          setConfig({ ...config, sockets: sockets })
-          setScanning(false)
+        if (i == 254) {
+          onScanComplete(sockets)
         }
       })
     }
+  }
+
+  const onScanComplete = (sockets: Array<SockObj>) => {
+    setConfig({ ...config, sockets: sockets })
+    setScanning(false)
+    setExpanded(true)
+    ToastAndroid.showWithGravityAndOffset(
+      `Scan Completed. ${sockets.length} servers detected.`,
+      ToastAndroid.LONG,
+      ToastAndroid.BOTTOM,
+      25,
+      50
+    );
   }
 
   const search = (term: string) => {
@@ -147,6 +165,11 @@ export default function MoreScreen({ navigation }: RootTabScreenProps<'More'>) {
     navigation.replace('Login')
   }
 
+  const removeSocket = (index: number) => {
+    let sockets: Array<SockObj> = config.sockets
+    // sockets.forEach()
+  }
+
   return (
     <View style={styles.container}>
       <ListItem key={"kot_group"} containerStyle={{
@@ -154,17 +177,18 @@ export default function MoreScreen({ navigation }: RootTabScreenProps<'More'>) {
         marginVertical: 8,
         borderRadius: 8,
       }}>
-        <Avatar rounded source={IMAGES.kot} />
+        {/* <Avatar rounded source={IMAGES.kot} /> */}
+        <MaterialIcons name="local-restaurant" size={24} color="#2f95dc" />
         <ListItem.Content>
           <ListItem.Title style={{ color: 'black', fontWeight: 'bold' }}>
             {"KOT Group"}
           </ListItem.Title>
-          <ListItem.Subtitle style={[{ color: 'red' }]}>
+          <ListItem.Subtitle style={[{ color: '#2f95dc' }]}>
             {cKg.Description ? cKg.Description : "Not Selected"}
           </ListItem.Subtitle>
         </ListItem.Content>
         <TouchableOpacity onPress={() => setSheetVisiblity(true)} style={{ padding: 5 }}>
-          <Text style={{ color: "blue" }}>{"CHANGE"}</Text>
+          <Text style={{ color: "#ffc107" }}>{"CHANGE"}</Text>
         </TouchableOpacity>
       </ListItem>
       <ListItem key={"log_out"}
@@ -178,7 +202,7 @@ export default function MoreScreen({ navigation }: RootTabScreenProps<'More'>) {
           <ListItem.Title style={{ color: 'black', fontWeight: 'bold' }}>
             {"Device IPv4"}
           </ListItem.Title>
-          <ListItem.Subtitle style={[{ color: 'red', fontStyle: 'normal' }]}>
+          <ListItem.Subtitle style={[{ color: '#2f95dc', fontStyle: 'normal' }]}>
             {deviceIp}
           </ListItem.Subtitle>
         </ListItem.Content>
@@ -198,8 +222,10 @@ export default function MoreScreen({ navigation }: RootTabScreenProps<'More'>) {
           <>
             {/* <Icon name="place" size={30} /> */}
             <ListItem.Content>
-              <ListItem.Title>List Accordion</ListItem.Title>
+              <ListItem.Title>Server List</ListItem.Title>
             </ListItem.Content>
+            <Badge value={config.sockets.length} status="primary" />
+
           </>
         }
         isExpanded={expanded}
@@ -214,7 +240,9 @@ export default function MoreScreen({ navigation }: RootTabScreenProps<'More'>) {
               <ListItem.Title>{"POS - " + (i + 1)}</ListItem.Title>
               <ListItem.Subtitle>{socket.url}</ListItem.Subtitle>
             </ListItem.Content>
-            <ListItem.Chevron />
+            <TouchableOpacity onPress={() => removeSocket(i)} style={{ padding: 5 }}>
+              <AntDesign name="delete" size={24} color="red" />
+            </TouchableOpacity>
           </ListItem>
         ))}
       </ListItem.Accordion>

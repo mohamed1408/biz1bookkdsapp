@@ -1,7 +1,8 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState } from 'react';
 import { FlatList, Pressable, ToastAndroid, StyleSheet, RefreshControl } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import { useFocusEffect } from '@react-navigation/native';
 
 import KotCard from "../components/KotCard"
 import { View } from '../components/Themed';
@@ -18,24 +19,19 @@ const colors = {
 
 export default function KitchenDisplayScreen({ navigation }: RootTabScreenProps<'KitchenDisplay'>) {
 
-  // React.useLayoutEffect(() => {
-  //   navigation.setOptions({
-  //     headerRight: () => (
-  //       <Pressable
-  //         // onPress={() => setShowFloors(true)}
-  //         style={({ pressed }) => ({
-  //           opacity: pressed ? 0.5 : 1,
-  //         })}>
-  //         <MaterialIcons
-  //           name="menu"
-  //           size={25}
-  //           color={'#2f95dc'}
-  //           style={{ marginRight: 15 }}
-  //         />
-  //       </Pressable>
-  //     )
-  //   })
-  // })
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Pressable
+          onPress={() => navigation.replace('MoreScreen')}
+          style={({ pressed }) => ({
+            opacity: pressed ? 0.5 : 1,
+          })}>
+          <MaterialCommunityIcons name="dots-horizontal" size={24} color={'#2f95dc'} style={{ marginRight: 15 }} />
+        </Pressable>
+      )
+    })
+  })
   let kotCache: Array<KOT> = []
   const _kots: KOT[] = []
 
@@ -49,17 +45,28 @@ export default function KitchenDisplayScreen({ navigation }: RootTabScreenProps<
   useEffect(() => {
     // setRefreshing(false)
     // setConfig({ ...config, indicator: !config.indicator })
+    console.log(config.sockets.length)
     socketConfig()
     // getKots()
   }, []);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log(config.sockets.length)
+
+      // return () => unsubscribe();
+    }, [])
+  );
   const notify = (message: string) => {
     ToastAndroid.show(message, ToastAndroid.SHORT);
   };
 
   const getKots = (url: string) => {
     api.getkots(new URL('getKots', url).href, config.KOTGroupId).then((response: any) => {
-      kotCache = [...new Set([...kotCache, ...response.data.kots])]
+      console.log("TOTAL KOTS by sock", response.data.kots.length, kotCache.length)
+      const kts = response.data.kots.map((kt: KOT) => ({ ...kt, sockUrl: url }))
+      kotCache = [...kotCache.filter((x: KOT) => x.sockUrl != url), ...kts.filter((x: KOT) => x.sockUrl == url)]
+      console.log("cache length: ", kotCache.length)
       setKOTS(kotCache.sort((a: any, b: any) => compare(a.kotTimeStamp, b.kotTimeStamp)))
     }, (error: any) => {
       console.log(error, new URL('getdbdata', url).href)
@@ -81,7 +88,7 @@ export default function KitchenDisplayScreen({ navigation }: RootTabScreenProps<
   }
 
   const onNewKot = (payload: any, url: string) => {
-    console.log(payload)
+    console.log("payload", payload)
     if (payload.KOTGroupId == config.KOTGroupId) {
       getKots(url)
       notify("New KOT!")
@@ -91,12 +98,17 @@ export default function KitchenDisplayScreen({ navigation }: RootTabScreenProps<
     }
   }
 
-  const changeStatus = (statusId: number, refid: string) => {
+  const changeStatus = (statusId: number, refid: string, url: string) => {
     let _kots = KOTS
     _kots.filter(x => x.refid == refid)[0].KOTStatusId = statusId
     setKOTS(_kots)
     indicateUpdate(!update_helper)
     // config.socket.emit("kot:statusChange", { refid: refid, KOTStatusId: statusId })
+    config.sockets.forEach(sock => {
+      if (sock.url == url) {
+        sock.socket.emit("kot:statusChange", { refid: refid, KOTStatusId: statusId })
+      }
+    })
   }
 
   const changeItemStatus = (kotrefid: string, product_key: string, completed: boolean) => {
@@ -110,15 +122,18 @@ export default function KitchenDisplayScreen({ navigation }: RootTabScreenProps<
     setRefreshing(true);
     let kots: Array<KOT> = []
     let fetched = 0
+    // kotCache = []
     config.sockets.forEach(sock => {
+      console.log(sock.url)
       api.getkots(new URL('getKots', sock.url).href, config.KOTGroupId).then((response: any) => {
         fetched++
         kots = [...kots, ...response.data.kots]
         if (fetched == config.sockets.length) {
-          console.log(kots.length, kots)
+          console.log("TOTAL KOTS by refresh", kots.length, kotCache.length)
           kotCache = kots.sort((a: any, b: any) => compare(a.kotTimeStamp, b.kotTimeStamp))
-          setKOTS(kots.sort((a: any, b: any) => compare(a.kotTimeStamp, b.kotTimeStamp)))
+          setKOTS(kotCache.sort((a: any, b: any) => compare(a.kotTimeStamp, b.kotTimeStamp)))
           setRefreshing(false)
+          // kotCache = kots
         }
       }, (error: any) => {
         fetched++
@@ -126,7 +141,6 @@ export default function KitchenDisplayScreen({ navigation }: RootTabScreenProps<
           setRefreshing(false)
         }
       })
-
     })
     // api.getkots(new URL('getKots', config.url).href, config.KOTGroupId).then((response: any) => {
     //   console.log(config.KOTGroupId, config.KOTGroup)
@@ -154,7 +168,6 @@ export default function KitchenDisplayScreen({ navigation }: RootTabScreenProps<
           selectedValue={statusFilter.toString()}
           mode='dropdown'
           onValueChange={(itemValue, itemIndex) => {
-            console.log(itemValue, typeof itemValue)
             setStatusFilter(+itemValue)
           }}>
           <Picker.Item label="All" value="0" />

@@ -19,7 +19,8 @@ export type RootStackParamList = {
   Modal: undefined;
   NotFound: undefined;
   Camera: undefined;
-  Login: undefined
+  Login: undefined;
+  MoreScreen: undefined;
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> = NativeStackScreenProps<
@@ -66,6 +67,8 @@ export type KOT = {
   ordername: string
   deliverytimestamp: number
   kotTimeStamp: number
+  sockUrl: string
+  _id: string
 }
 export type Items = {
   DiscType: number;

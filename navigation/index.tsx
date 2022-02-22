@@ -3,7 +3,7 @@
  * https://reactnavigation.org/docs/getting-started
  *
  */
-import { Feather, FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Feather, FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -41,11 +41,23 @@ export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeNa
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function RootNavigator() {
+  const { config } = useConfig()
   return (
     <Stack.Navigator initialRouteName='Login'>
       <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Camera" component={Camera} options={{ headerShown: false }} />
-      <Stack.Screen name="Root" component={BottomTabNavigator} options={{ headerShown: false }} />
+      <Stack.Screen name="Root" component={KitchenDisplayScreen} options={{ headerShown: true, title: config.KOTGroup, headerLeft: () => (<></>) }} />
+      <Stack.Screen name="MoreScreen" component={MoreScreen} options={({ navigation, route }) => ({
+        headerShown: true, title: "More", headerLeft: () => (
+          <Pressable
+            onPress={navigation.goBack}
+            style={({ pressed }) => ({
+              opacity: pressed ? 0.5 : 1,
+            })}>
+            <Ionicons name="chevron-back" size={25} color="black" style={{ marginRight: 15 }} />
+          </Pressable>
+        )
+      })} />
       <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!' }} />
       <Stack.Group screenOptions={{ presentation: 'modal' }}>
         <Stack.Screen name="Modal" component={ModalScreen} />
